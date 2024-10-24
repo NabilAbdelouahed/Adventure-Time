@@ -17,10 +17,10 @@ SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('coding weeks : groupe 4')
 
-# créer une grille 20*20 : 800/20 = 40 par case
+# create a 20*20 grid : 800/20 = 40 cell
 tile_size = 40
 
-# variables pour les affichages
+# display variables
 font = pygame.font.SysFont('Bauhaus 93', 70)
 font_score = pygame.font.SysFont('Bauhaus 93', 30)
 white = (255,255,255)
@@ -28,10 +28,10 @@ blue = (0,0,255)
 red = (255, 0 , 0)
 black = (0,0,0)
 
-#creer une variable globale qui indique quand est-ce que le jeu est fini
+#global variable for game status
 game_over = 0
 
-#créer une varible pour savoir quand afficher le menu principal
+#to know when to display the main menu
 main_menu = True
 
 #levels
@@ -40,7 +40,7 @@ max_level = len(os.listdir('D:/projects python pycharm/adventure_time/levels'))-
 
 score = 0
 
-#importer les images
+#import images
 sun_img = pygame.image.load('img/sun.png')
 sky_img = pygame.image.load('img/sky.png')
 sky_img = pygame.transform.scale(sky_img,(SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -48,7 +48,7 @@ restart_img = pygame.image.load('img/restart_btn.png')
 start_img = pygame.image.load('img/start_btn.png')
 exit_img = pygame.image.load('img/exit_btn.png')
 
-#importer les sons
+#import sounds
 pygame.mixer.music.load('sound_effect/music.wav')
 pygame.mixer.music.play(-1,0.0,5000)
 coin_sound = pygame.mixer.Sound('sound_effect/coin.wav')
@@ -66,13 +66,13 @@ def depickle(i):
 
 
 # there is no built in function in pygame tp show a text in the screen so we need to build one
-#pour cela on va convertir le texte en image et utiliser pygame.blit
+# for that we will convert text to image and use pygame.blit
 
 def draw_text(text, font, text_col, x, y) :
     img = font.render(text,True,text_col)
     screen.blit(img,(x,y))
 
-# creer une fonction pour charger les niveaux
+# function to update levels
 def reset_level(level, level_data):
     player.reset(80, SCREEN_HEIGHT - 100)
     blob_group.empty()
@@ -88,48 +88,45 @@ def reset_level(level, level_data):
         world = World(level_data)
     return(world)
 
-#on crée une classe pour gérer tout les boutons du jeu restart par exemple
+# a class to generate all buttons
 class Button():
     def __init__(self, x,y,image):
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        #on veut appuier une seule fois sur le souris donc on peut utiliser self.clicked pour cela
         self.clicked = False
     def draw(self):
-        # une variable qui représente la fonction du bouton
         action = False
-        #position de la souris ( un point )
         pos = pygame.mouse.get_pos()
-        #verifier si la souris est sur le bouton et si on appui sur le bouton
+        #check if the mouse is on the button and clicked
         if self.rect.collidepoint(pos) :
-            if pygame.mouse.get_pressed()[0] and self.clicked == False: #liste avec des 0 et 1 pour les 3 boutons de la souris
+            if pygame.mouse.get_pressed()[0] and self.clicked == False: #list with 0 et 1 for the 3 buttons of the mouse
                 action = True
                 self.clicked = True
         if  pygame.mouse.get_pressed()[0] == 0 :
             self.clicked = False
-        #dessiner le bouton
+        #draw the button
         screen.blit(self.image, self.rect)
         return(action)
 
-#creer une classe player pour definir le joueur, ses deplacements ...
+#player class to define his position, movements...
 class player():
     def __init__(self,x,y) :
         self.reset(x,y)
 
     def update(self, game_over):
-        # on ajoute dx et dy au lieu de faire self.rect.x += 5 pour pouvoir calculer la nouvelle position avant de l'appliquer
-        # pour faciliter la detection des collisions par la suite
+        #we add dx and dy instead of self.rect.x += 5 so we can calculate the new position before applying it
+        # this helps with collision detection 
         dx = 0
         dy = 0
         # adding a speed limit for the walking animation
         walk_cooldown = 5
         col_thresh = 20
         if game_over == 0 :
-            # detecter les touches pour les deplacements
+            # detect movement keys
             key = pygame.key.get_pressed()
-            # si le joueur est dans l'air il ne peux pas sauter
+            # if player is mid-air he can't jump
             if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
                 self.vel_y = -15
                 self.jumped = True
@@ -152,7 +149,7 @@ class player():
                 if self.direction == -1 :
                     self.image = self.images_left[self.index]
 
-            #ajouter l'animation
+            #add animation
             if self.counter > walk_cooldown :
                 self.counter = 0
                 self.index += 1
@@ -163,72 +160,71 @@ class player():
                 if self.direction == -1 :
                     self.image = self.images_left[self.index]
 
-            #ajouter la gravité
+            #add gravity
             self.vel_y += 1
             if self.vel_y > 10 :
                 self.vel_y = 10
             dy += self.vel_y
 
-            #vérifier la collision
+            #detect collision
             self.in_air = True
             for tile in world.tile_list :
-                # vérifier la collision sur la direction x
-                #étant en position n on utilise la position n+1 calculée a l'aide de x + dx ( pareil pour la direction y)
+                # check collision on x axis
+                #given a position n we calculate the n+1 position using x+dx (same for y axis)
                 if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                     dx = 0
 
-                #vérifier la collision sur la direction y
+                #check collision ow yaxis
                 if tile[1].colliderect(self.rect.x,self.rect.y + dy, self.width, self.height ) :
-                    # verifier si le joueur est dessous ou dessus un bloc
-                    #si vel < 0 le joueur est en train de sauter
+                    # check is player is under or ovec a block
+                    #if vel < 0 player is jumping
                     if self.vel_y < 0:
-                        #on bouge le joueur de la distance entre le block et sa position
+                        #we move the player by the distance between him and the bloc
                         dy = tile[1].bottom - self.rect.top
-                        # la vitesse doit etre reset a 0 lorsqu'il touche le bloc avec sa tete pour eviter d'avoir un effet que le joueur plane pour
-                        # un moment avant de retomber
+                        # velocity needs to be reset to 0 to avoid getting a flying effect before the player falls
                         self.vel_y = 0
-                    #si vel > 0 le joueur est en train de tomber
+                    #if vel > 0 player is falling
                     elif self.vel_y >= 0:
-                        #on bouge le joueur de la distance entre le block et sa position
+                        #we move the player by the distance between him and the bloc
                         dy = tile[1].top - self.rect.bottom
                         self.vel_y = 0
                         self.in_air = False
-            # vérifier la collision avec les blobs
-            # spritecollide foctionne comme sprite rect mais avec les groupes sprite
-            #si on ne met pas le False lors de la collision la fonction va faire disparaitre ces elements or on veux juste detecter la collision
+            # check collision with blobs
+            # spritecollide works the same as sprite rect but with sprite groups
+            # if we don't add the False parameter, when colliding the function will make the colliding elements disappear but we just need to detect the collision
             if pygame.sprite.spritecollide(self, blob_group, False) :
                 game_over = -1
                 game_over_sound.play()
 
-            # vérifier la collision avec la lave
+            # check collision with lava
             if pygame.sprite.spritecollide(self, lava_group, False) :
                 game_over = -1
                 game_over_sound.play()
-            # vérifier la collision avec la sortie
+            # check collision with the exit
             if pygame.sprite.spritecollide(self, exit_group, False) :
                 game_over = 1
 
-            # vérifier les collision avec les plateformes
+            # check collision with flyingblocks
             for platform in platform_group:
-                #sur la direction x
+                # on the x axis
                 if platform.rect.colliderect(self.rect.x + dx, self.rect.y, self.width, self.height) :
                     dx = 0
-                # sur la direction y
+                # on the y axis
                 if platform.rect.colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-                    #verifier si le joueur est sous une plateforme
+                    # check if player is under a bloc
                     if abs((self.rect.top + dy) - platform.rect.bottom) < col_thresh :
                         self.vel_y = 0
                         dy = platform.rect.bottom - self.rect.top
-                    # verifier si le joueur est sur une plateforme
+                    # check if player is standing on a bloc
                     elif abs((self.rect.bottom + dy) - platform.rect.top) < col_thresh :
                         self.rect.bottom = platform.rect.top - 1
                         dy = 0
                         self.in_air = False
-                    #deplacer le joueur avec la plateforme
+                    #move the player with the moving bloc
                     if platform.move_x != 0 :
                         self.rect.x += platform.move_direction
 
-            # mise a jour des coordonnées du joueur
+            # update player's position
             self.rect.x += dx
             self.rect.y += dy
 
@@ -238,20 +234,21 @@ class player():
             draw_text('SCORE : ' + str(score), font_score, black, (SCREEN_WIDTH // 2) - 80, (SCREEN_HEIGHT // 2) + 70)
             if self.rect.y > 160 :
                 self.rect.y -= 5
-        #dessiner le player
+        # draw player
         screen.blit(self.image,self.rect)
 
         return ( game_over )
-    # on crée une fonction restart qui réinitialise le joueur lorsque le bouton restart est presse
+        
+    # Function to restart the player's position when starting or restarting a level
     def reset(self, x, y):
         # adding lists containing the player's images so for each movement we run through the list for an animation
         self.images_right = []
         self.images_left = []
-             #track the index/position in the list
+             # track the index/position in the list
         self.index = 0
               # a variable to control the speed of the animation
         self.counter = 0
-        #load the images in the lists
+        # load the images in the lists
         for num in range(1,5):
             img_right = pygame.image.load(f'img/guy{num}.png')
             img_right = pygame.transform.scale(img_right, (30, 60))
@@ -265,27 +262,27 @@ class player():
         self.rect.y = y
         self.width = self.image.get_width()
         self.height = self.image.get_height()
-        # ajouter une variable qui traduit la vitesse lors du saut pour gérer l'amplitude du saut selon l'appui sur le space key
+        # add a varible to adjust jumping speed depending on the space key press duration
         self.vel_y = 0
-        # ajouter une variable pour controler les sauts
+        # add a variable to control juming occurence
         self.jumped = False
-        #control the movement direction to know which list to load for the animation
+        # control the movement direction to know which list to load for the animation
         self.direction = 0
-        # pour fixer le bug de pouvoir sauter plusieurs fois on ajoute une variable qui nous indique quand est ce que le joueur est dans l'air
+        # prohibit multiple jumps 
         self.in_air = True
 
-#creer une classe world pour definir les niveaux
+# class world to define levels structure 
 class World():
     def __init__(self, data):
-        #creer une liste plus simplifiee pour le world avec que les obstacles et leurs positions
+        # a simpler level list with just obstacles and their position
         self.tile_list = []
-        # data représente la matrice world
-
-        # importer les images pour créer le niveau
+        
+        # data represents the level's matrix
+        # import images to create the world
         dirt_img = pygame.image.load('img/dirt.png')
         grass_img = pygame.image.load('img/grass.png')
 
-        # lire la liste world_data et interpreter les entiers
+        # read the list and add corresponding blocs
         for i in range(len(data)):
             for j in range(len(data[i])):
                 if data[i][j] == 1 :
@@ -303,9 +300,9 @@ class World():
                     tile = (img, img_rect)
                     self.tile_list.append((tile))
                 if data[i][j] == 3:
-                    # on met un +5 sur la direction y pour poser le blob sur le bloque dirt
+                    # we add a +5 on the y axis to rest the blob on the dirt bloc
                     blob = Blob(tile_size * j, tile_size * i + 5)
-                    #ajouter le blob au groupe des ennemis
+                    # add the blob to an enemy group
                     blob_group.add(blob)
                 if data[i][j] == 4:
                     platform = Plateform(tile_size * j, tile_size * i, 1,0)
@@ -324,14 +321,14 @@ class World():
                     exit_group.add(exit)
 
 
-    #afficher les obstacles sur la fenetre
+    # display obstacles on the screen
     def draw(self):
         for tile in self.tile_list :
             screen.blit(tile[0],tile[1])
 
-# creer une classe blob pour les ennemis
-# on va utiliser la classe incluse dans le module pygame "pygame.sprite.Sprite". la classe blob sera une classe enfant de cette classe
-# pygame.sprite.Sprite is a class for visible game objects donc on utilisera qq fonctions de cette classe dans la classe blob
+# create a blob class for enemies
+# we will use a class included in the pygame "pygame.sprite.Sprite". the blob class will be a child class of it
+# pygame.sprite.Sprite is a class for visible game objects so we will use some of its functions for the blob class
 class Blob(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
@@ -339,17 +336,17 @@ class Blob(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        # une variable pour le mouvement des blobs vers la gauche ou la droite
+        # blob movement left and right
         self.move_direction = 1
-        #une variable qui nous aidera a limiter le mouvement des blobs pour ne pas depasser la plateforme par exemple
+        # limit blob movement to not fall from mobing blocs
         self.move_counter = 0
     def update(self):
         self.rect.x += self.move_direction
         self.move_counter += 1
         if abs(self.move_counter) > tile_size :
-            #changer la direction
+            # change direction
             self.move_direction *= -1
-            # multiplier par -1 au lieu de reset a zero pour avoir le meme mouvement a gauche au lieu de revenir a la position initiale
+            # multiply by -1 instead of resetting to 0 to have the same movement to the left instead of going back to initianl position
             self.move_counter *= -1
 
 class Plateform(pygame.sprite.Sprite) :
@@ -360,7 +357,7 @@ class Plateform(pygame.sprite.Sprite) :
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        #pour le mouvement des plateformes on va faire comme pour le mouvement des blobs
+        # for the blocs movement we will do the same as for the blob movement
         self.move_counter = 0
         self.move_direction = 1
         self.move_x = move_x
@@ -371,17 +368,17 @@ class Plateform(pygame.sprite.Sprite) :
             self.rect.x += self.move_direction
             self.move_counter += 1
             if abs(self.move_counter) > tile_size:
-                # changer la direction
+                # change direction
                 self.move_direction *= -1
-                # multiplier par -1 au lieu de reset a zero pour avoir le meme mouvement a gauche au lieu de revenir a la position initiale
+                # multiply by -1 instead of resetting to 0 to have the same movement to the left instead of going back to initianl position
                 self.move_counter *= -1
         if self.move_y == 1 :
             self.rect.y += self.move_direction
             self.move_counter += 1
             if abs(self.move_counter) > tile_size:
-                # changer la direction
+                # change direction
                 self.move_direction *= -1
-                # multiplier par -1 au lieu de reset a zero pour avoir le meme mouvement a gauche au lieu de revenir a la position initiale
+                # multiply by -1 instead of resetting to 0 to have the same movement to the left instead of going back to initianl position
                 self.move_counter *= -1
 
 class Lava(pygame.sprite.Sprite):
@@ -421,37 +418,35 @@ class Exit(pygame.sprite.Sprite):
 # 7 : coin
 # 8 : exit
 level_data = depickle(level)
-#importer les images
+#import images
 player = player(80 , SCREEN_HEIGHT - 100)
-# la classe pygame.sprite.Sprite fonctionne comme les listes avant de faire un append il faut creer une liste vide ou on pourra ajouter
-# les ennemis par la suite. ceci sera le role de la variable ci dessous (blob_group) :
-#pareil pour la lave, plateforme et exit
+# pygame.sprite.Sprite class works the same as a list : needs to be initialised before append
 blob_group = pygame.sprite.Group()
 platform_group = pygame.sprite.Group()
 lava_group = pygame.sprite.Group()
 coin_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
 
-# creer un coin pour l'affichage du score
+# create coins for score
 score_coin = Coin(tile_size //2 , tile_size // 2 )
 coin_group.add(score_coin)
 world = World(level_data)
 
-#créer les boutons
+# create buttons
 restart_button = Button(SCREEN_WIDTH // 2 -80, SCREEN_HEIGHT // 2 , restart_img)
 start_button = Button(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2, start_img)
 exit_button = Button(SCREEN_WIDTH // 2 + 100, SCREEN_HEIGHT // 2, exit_img)
 
-# boucle du jeu
+# game loop
 run = True
 while run :
-    #fix the frame rate
+    # fix the frame rate
     clock.tick(fps)
-    #afficher les images dans la fenetre
+    # display images on the window
     screen.blit(sky_img, (0, 0))
     screen.blit(sun_img, (60, 60))
 
-    # afficher le menu ou jouer
+    # display menu
     if main_menu == True:
         if exit_button.draw():
             run = False
@@ -463,13 +458,13 @@ while run :
         if game_over == 0 :
             blob_group.update()
             platform_group.update()
-            #gerer les coins
+            # manage coins
             if pygame.sprite.spritecollide(player, coin_group, True):
                 score +=1
                 coin_sound.play()
             draw_text('X '+ str(score), font_score, white, tile_size -5, 5)
 
-        #on n'a pas codé la fonction draw pour les blob parce que celle ci est deja codée dans la classe pygame.sprite.Sprite
+        # we didn't add a draw function for the blob because it's included in pygame.sprite.Sprite
         blob_group.draw(screen)
         platform_group.draw(screen)
         lava_group.draw(screen)
@@ -477,7 +472,7 @@ while run :
         exit_group.draw(screen)
         game_over = player.update(game_over)
 
-        #le joueur a perdu
+        # the player lost
         if game_over == -1 :
              if restart_button.draw():
                 world = reset_level(level,level_data)
@@ -485,24 +480,24 @@ while run :
                 score = 0
 
 
-        #le joueur a fini le niveau
+        # player finished the level
         if game_over == 1 :
             level += 1
             if level <= max_level :
-                #passer au niveau suivant
+                # go to next level
                 world = reset_level(level,level_data)
                 game_over = 0
             else :
                 draw_text('YOU WIN ! ', font, blue, (SCREEN_WIDTH // 2) - 150, (SCREEN_HEIGHT // 2) - 100)
                 draw_text('SCORE : '+ str(score),font_score,black,(SCREEN_WIDTH // 2) - 80, (SCREEN_HEIGHT // 2) + 70)
-                #restart le jeu
+                # restart game
                 if restart_button.draw():
                     level = 1
                     world = reset_level(level, level_data)
                     game_over = 0
                     score = 0
 
-        # condition pour fermer la fenetre du jeu
+        # condition to close the game window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
