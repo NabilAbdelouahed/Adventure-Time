@@ -5,7 +5,7 @@ pygame.mixer.pre_init(44100,-16,2,512)
 pygame.mixer.init()
 pygame.init()
 
-#addin a clock to keep track of time in the game
+# addin a clock to keep track of time in the game
 clock = pygame.time.Clock()
 fps = 60
 
@@ -17,10 +17,8 @@ SCREEN_HEIGHT = 800
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('coding weeks : groupe 4')
 
-# créer une grille 20*20 : 800/20 = 40 par case
 tile_size = 40
 
-# variables pour les affichages
 font = pygame.font.SysFont('Bauhaus 93', 70)
 font_score = pygame.font.SysFont('Bauhaus 93', 30)
 white = (255,255,255)
@@ -28,7 +26,6 @@ blue = (0,0,255)
 red = (255, 0 , 0)
 black = (0,0,0)
 
-#importer les images
 sun_img = pygame.image.load('img/sun.png')
 sky_img = pygame.image.load('img/sky.png')
 sky_img = pygame.transform.scale(sky_img,(SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -42,21 +39,16 @@ coin_img = pygame.image.load('img/coin.png')
 lava_img = pygame.image.load('img/lava.png')
 player = pygame.image.load('img/guy1.png')
 player = pygame.transform.scale(player, (30, 60))
-#créer une varible pour savoir quand afficher le menu principal
 main_menu = True
 
 
 class World():
     def __init__(self, data):
-        #creer une liste plus simplifiee pour le world avec que les obstacles et leurs positions
         self.tile_list = []
-        # data représente la matrice world
 
-        # importer les images pour créer le niveau
         dirt_img = pygame.image.load('img/dirt.png')
         grass_img = pygame.image.load('img/grass.png')
 
-        # lire la liste world_data et interpreter les entiers
         for i in range(len(data)):
             for j in range(len(data[i])):
                 if data[i][j] == 1 :
@@ -118,7 +110,6 @@ class World():
 
 
 
-    #afficher les obstacles sur la fenetre
     def draw(self):
         for tile in self.tile_list :
             screen.blit(tile[0],tile[1])
@@ -138,7 +129,6 @@ level_data = [[0 for i in range(20)] for j in range(20)]
 world = World(level_data)
 while run :
     clock.tick(fps)
-    #afficher les images dans la fenetre
     screen.blit(sky_img, (0, 0))
     screen.blit(sun_img, (60, 60))
     screen.blit(player,(2*tile_size,SCREEN_HEIGHT-3*tile_size+20))
@@ -146,11 +136,8 @@ while run :
     world.draw()
     x , y = pygame.mouse.get_pos()
     i , j = x//tile_size , y//tile_size
-    # if pygame.mouse.get_pressed()[0]  :
-    #     level_data[i][j] += 1
-    #     print(level_data)
 
-    if pygame.mouse.get_pressed()[0] and clicked == False: #liste avec des 0 et 1 pour les 3 boutons de la souris
+    if pygame.mouse.get_pressed()[0] and clicked == False:
         action = True
         clicked = True
     if  pygame.mouse.get_pressed()[0] == 0 :
@@ -162,7 +149,6 @@ while run :
             level_data[j][i] = 0
     world = World(level_data)
 
-    # condition pour fermer la fenetre du jeu
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
