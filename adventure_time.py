@@ -11,14 +11,16 @@ clock = pygame.time.Clock()
 fps = 60
 
 # window dimentions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+screen_info = pygame.display.Info()
+SCREEN_WIDTH = screen_info.current_w
+SCREEN_HEIGHT = screen_info.current_h
+WINDOW_SIZE = min(SCREEN_WIDTH, SCREEN_HEIGHT) // 100 * 100 - 100
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
 pygame.display.set_caption('coding weeks : groupe 4')
 
 # create a 20*20 grid : 800/20 = 40 cell
-tile_size = 40
+tile_size = WINDOW_SIZE / 20
 
 # display variables
 font = pygame.font.SysFont('Bauhaus 93', 70)
@@ -36,14 +38,14 @@ main_menu = True
 
 #levels
 level = 1
-max_level = len(os.listdir('D:/projects python pycharm/adventure_time/levels'))-1
+max_level = len(os.listdir('./levels'))-1
 
 score = 0
 
 #import images
 sun_img = pygame.image.load('img/sun.png')
 sky_img = pygame.image.load('img/sky.png')
-sky_img = pygame.transform.scale(sky_img,(SCREEN_WIDTH,SCREEN_HEIGHT))
+sky_img = pygame.transform.scale(sky_img,(WINDOW_SIZE,WINDOW_SIZE))
 restart_img = pygame.image.load('img/restart_btn.png')
 start_img = pygame.image.load('img/start_btn.png')
 exit_img = pygame.image.load('img/exit_btn.png')
@@ -74,7 +76,7 @@ def draw_text(text, font, text_col, x, y) :
 
 # function to update levels
 def reset_level(level, level_data):
-    player.reset(80, SCREEN_HEIGHT - 100)
+    player.reset(tile_size * 2, WINDOW_SIZE - (tile_size * 2.5))
     blob_group.empty()
     platform_group.empty()
     lava_group.empty()
@@ -128,7 +130,7 @@ class player():
             key = pygame.key.get_pressed()
             # if player is mid-air he can't jump
             if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
-                self.vel_y = -15
+                self.vel_y = -(tile_size * 0.35)
                 self.jumped = True
                 jump_sound.play()
             if key[pygame.K_SPACE] == False :
@@ -162,8 +164,8 @@ class player():
 
             #add gravity
             self.vel_y += 1
-            if self.vel_y > 10 :
-                self.vel_y = 10
+            if self.vel_y > (tile_size * 0.25) :
+                self.vel_y = tile_size * 0.25
             dy += self.vel_y
 
             #detect collision
@@ -230,8 +232,8 @@ class player():
 
         elif game_over == -1 :
             self.image = self.dead_image
-            draw_text('GAME OVER !', font, red, (SCREEN_WIDTH // 2) - 200, (SCREEN_HEIGHT // 2) - 100)
-            draw_text('SCORE : ' + str(score), font_score, black, (SCREEN_WIDTH // 2) - 80, (SCREEN_HEIGHT // 2) + 70)
+            draw_text('GAME OVER !', font, red, (WINDOW_SIZE // 2) - (tile_size * 5), (WINDOW_SIZE // 2) - (tile_size * 2.5))
+            draw_text('SCORE : ' + str(score), font_score, black, (WINDOW_SIZE // 2) - (tile_size * 2), (WINDOW_SIZE // 2) + (tile_size * 1.5))
             if self.rect.y > 160 :
                 self.rect.y -= 5
         # draw player
@@ -251,7 +253,7 @@ class player():
         # load the images in the lists
         for num in range(1,5):
             img_right = pygame.image.load(f'img/guy{num}.png')
-            img_right = pygame.transform.scale(img_right, (30, 60))
+            img_right = pygame.transform.scale(img_right, (tile_size * 0.75, tile_size * 1.5))
             img_left = pygame.transform.flip(img_right, True, False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
@@ -332,7 +334,8 @@ class World():
 class Blob(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("img/blob.png")
+        img = pygame.image.load("img/blob.png")
+        self.image = pygame.transform.scale(img, (tile_size , tile_size) )
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -385,7 +388,7 @@ class Lava(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
         img = pygame.image.load("img/lava.png")
-        self.image = pygame.transform.scale(img, (tile_size , tile_size // 2) )
+        self.image = pygame.transform.scale(img, (tile_size , tile_size // 2 + 1) )
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -419,7 +422,7 @@ class Exit(pygame.sprite.Sprite):
 # 8 : exit
 level_data = depickle(level)
 #import images
-player = player(80 , SCREEN_HEIGHT - 100)
+player = player(tile_size * 2 , WINDOW_SIZE - (tile_size * 2.5))
 # pygame.sprite.Sprite class works the same as a list : needs to be initialised before append
 blob_group = pygame.sprite.Group()
 platform_group = pygame.sprite.Group()
@@ -433,9 +436,9 @@ coin_group.add(score_coin)
 world = World(level_data)
 
 # create buttons
-restart_button = Button(SCREEN_WIDTH // 2 -80, SCREEN_HEIGHT // 2 , restart_img)
-start_button = Button(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2, start_img)
-exit_button = Button(SCREEN_WIDTH // 2 + 100, SCREEN_HEIGHT // 2, exit_img)
+restart_button = Button(WINDOW_SIZE // 2 - (tile_size * 2), WINDOW_SIZE // 2 , restart_img)
+start_button = Button(WINDOW_SIZE // 2 - (tile_size * 7.5), WINDOW_SIZE // 2, start_img)
+exit_button = Button(WINDOW_SIZE // 2 + (tile_size * 2.5), WINDOW_SIZE // 2, exit_img)
 
 # game loop
 run = True
@@ -462,7 +465,7 @@ while run :
             if pygame.sprite.spritecollide(player, coin_group, True):
                 score +=1
                 coin_sound.play()
-            draw_text('X '+ str(score), font_score, white, tile_size -5, 5)
+            draw_text('X '+ str(score), font_score, white, tile_size - (tile_size * 0.125), (tile_size * 0.125))
 
         # we didn't add a draw function for the blob because it's included in pygame.sprite.Sprite
         blob_group.draw(screen)
@@ -488,8 +491,8 @@ while run :
                 world = reset_level(level,level_data)
                 game_over = 0
             else :
-                draw_text('YOU WIN ! ', font, blue, (SCREEN_WIDTH // 2) - 150, (SCREEN_HEIGHT // 2) - 100)
-                draw_text('SCORE : '+ str(score),font_score,black,(SCREEN_WIDTH // 2) - 80, (SCREEN_HEIGHT // 2) + 70)
+                draw_text('YOU WIN ! ', font, blue, (WINDOW_SIZE // 2) - (tile_size * 3.75), (WINDOW_SIZE // 2) - (tile_size * 2.5))
+                draw_text('SCORE : '+ str(score),font_score,black,(WINDOW_SIZE // 2) - (tile_size * 2), (WINDOW_SIZE // 2) + (tile_size * 1.75))
                 # restart game
                 if restart_button.draw():
                     level = 1
