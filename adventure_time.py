@@ -130,7 +130,7 @@ class player():
             key = pygame.key.get_pressed()
             # if player is mid-air he can't jump
             if key[pygame.K_SPACE] and self.jumped == False and self.in_air == False:
-                self.vel_y = -(tile_size * 0.35)
+                self.vel_y = -(tile_size * 0.36)
                 self.jumped = True
                 jump_sound.play()
             if key[pygame.K_SPACE] == False :
