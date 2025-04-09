@@ -1,5 +1,7 @@
 import pygame , numpy as np
-
+import pickle
+import os
+import re
 
 pygame.mixer.pre_init(44100,-16,2,512)
 pygame.mixer.init()
@@ -155,4 +157,27 @@ while run :
     pygame.display.update()
 pygame.quit()
 
-print(level_data)
+# save the level data to a file using pickle
+def pickle_level(mat,i):
+    with open(f'./levels/level_{i}.bin', 'wb') as fichier:
+        pickle.dump(mat, fichier, pickle.HIGHEST_PROTOCOL)
+    return()
+
+# Get latest level number
+def get_latest_level(directory_path):
+    pattern = re.compile(r'^level_(\d+)\.bin$')
+    max_level = None
+
+    for filename in os.listdir(directory_path):
+        match = pattern.match(filename)
+        if match:
+            level = int(match.group(1))
+            if max_level is None or level > max_level:
+                max_level = level
+    if max_level is None:
+        max_level = 0
+    return max_level
+
+level_number = get_latest_level('levels') + 1
+
+pickle_level(level_data, level_number)
